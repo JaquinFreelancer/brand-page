@@ -1,0 +1,91 @@
+graph TD
+    %% Comentarios:
+    %% - Arquitectura de 3 capas: Frontend, Backend/API, Infraestructura
+    %% - Incluye roles, seguridad, almacenamiento y servicios externos
+    %% - Separación de responsabilidades y escalabilidad
+    %% - Flujos de datos y comunicación entre capas
+
+    %% === ACTORES/USUARIOS ===
+    Guest[Usuario Visitante]
+    User[Usuario Autenticado]
+    Admin[Administrador/Editor]
+
+    %% === FRONTEND ===
+    subgraph FE [Frontend SPA/SSR]
+        HomePage[HomePage]
+        Servicios[Servicios]
+        SobreNosotros[Sobre Nosotros]
+        Equipo[Equipo]
+        Blog[Blog]
+        Contacto[Contacto]
+        PanelAdmin[Panel Admin]
+    end
+
+    %% === BACKEND/API ===
+    subgraph API [Backend API RESTful]
+        SecurityLayer[Security Layer<br/>JWT, RBAC, Validation]
+        SessionManager[Session Manager]
+        
+        AuthController[Auth Controller]
+        UserController[User Controller]
+        PagesController[Pages Controller]
+        ServicesController[Services Controller]
+        TeamController[Team Controller]
+        TestimonialsController[Testimonials Controller]
+        BlogController[Blog Controller]
+        CommentsController[Comments Controller]
+        MediaController[Media Controller]
+        ContactController[Contact Controller]
+        SettingsController[Settings Controller]
+        AnalyticsController[Analytics Controller]
+    end
+
+    %% === INFRAESTRUCTURA ===
+    subgraph INFRA [Infraestructura y Servicios]
+        DB[(PostgreSQL Database)]
+        FileStorage[Almacenamiento Archivos<br/>S3/Local]
+        EmailSystem[Sistema de Emails]
+        CaptchaService[Captcha Service]
+        LogMonitoring[Log/Monitoring]
+        CDNCache[CDN/Cache]
+    end
+
+    %% === CONEXIONES PRINCIPALES ===
+    Guest --> FE
+    User --> FE
+    Admin --> FE
+
+    FE --> API
+    API --> SecurityLayer
+    SecurityLayer --> SessionManager
+
+    %% === FLUJOS DETALLADOS ===
+    %% Frontend a Controllers
+    HomePage --> AuthController
+    Servicios --> ServicesController
+    SobreNosotros --> PagesController
+    Equipo --> TeamController
+    Blog --> BlogController
+    Contacto --> ContactController
+    PanelAdmin --> UserController
+
+    %% Controllers a Database
+    AuthController --> DB
+    UserController --> DB
+    PagesController --> DB
+    ServicesController --> DB
+    TeamController --> DB
+    TestimonialsController --> DB
+    BlogController --> DB
+    CommentsController --> DB
+    ContactController --> DB
+    SettingsController --> DB
+    AnalyticsController --> DB
+
+    %% Servicios específicos
+    MediaController --> FileStorage
+    MediaController --> CDNCache
+    ContactController --> EmailSystem
+    AuthController --> EmailSystem
+    FE --> CaptchaService
+    API --> LogMonitoring

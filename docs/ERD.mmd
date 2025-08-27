@@ -1,0 +1,242 @@
+erDiagram
+    %% Entidades de Usuario y Autenticación
+    USERS {
+        uuid id PK "UUID único del usuario"
+        varchar email UK "Email único para login"
+        varchar password_hash "Hash bcrypt de la contraseña"
+        varchar first_name "Nombre del usuario"
+        varchar last_name "Apellido del usuario"
+        varchar phone "Teléfono de contacto"
+        enum role "ADMIN, EDITOR, VIEWER"
+        boolean is_active "Estado activo del usuario"
+        timestamp email_verified_at "Fecha verificación email"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+        timestamp last_login_at "Última fecha de login"
+    }
+
+    USER_SESSIONS {
+        uuid id PK "UUID único de la sesión"
+        uuid user_id FK "Referencia al usuario"
+        varchar token_hash "Hash del token de sesión"
+        varchar ip_address "IP del cliente"
+        varchar user_agent "Navegador del cliente"
+        timestamp expires_at "Fecha de expiración"
+        timestamp created_at "Fecha de creación"
+    }
+
+    PASSWORD_RESETS {
+        uuid id PK "UUID único del reset"
+        varchar email "Email para reset"
+        varchar token_hash "Hash del token de reset"
+        timestamp expires_at "Fecha de expiración"
+        timestamp created_at "Fecha de creación"
+    }
+
+    %% Entidades de Contenido Principal
+    PAGES {
+        uuid id PK "UUID único de la página"
+        varchar slug UK "URL amigable única"
+        varchar title "Título de la página"
+        varchar meta_title "Meta título SEO"
+        text meta_description "Meta descripción SEO"
+        varchar meta_keywords "Keywords SEO"
+        text content "Contenido HTML de la página"
+        varchar featured_image "URL imagen destacada"
+        enum status "DRAFT, PUBLISHED, ARCHIVED"
+        boolean is_homepage "Indica si es página principal"
+        integer sort_order "Orden de visualización"
+        uuid created_by FK "Usuario que creó la página"
+        uuid updated_by FK "Usuario que actualizó"
+        timestamp published_at "Fecha de publicación"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades del Blog
+    BLOG_CATEGORIES {
+        uuid id PK "UUID único de la categoría"
+        varchar name UK "Nombre único de categoría"
+        varchar slug UK "URL amigable única"
+        text description "Descripción de la categoría"
+        varchar color "Color hexadecimal"
+        boolean is_active "Estado activo"
+        integer sort_order "Orden de visualización"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    BLOG_TAGS {
+        uuid id PK "UUID único del tag"
+        varchar name UK "Nombre único del tag"
+        varchar slug UK "URL amigable única"
+        varchar color "Color hexadecimal"
+        integer usage_count "Contador de uso"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    BLOG_POSTS {
+        uuid id PK "UUID único del post"
+        varchar title "Título del post"
+        varchar slug UK "URL amigable única"
+        text excerpt "Resumen del post"
+        text content "Contenido HTML completo"
+        varchar featured_image "URL imagen destacada"
+        varchar meta_title "Meta título SEO"
+        text meta_description "Meta descripción SEO"
+        varchar meta_keywords "Keywords SEO"
+        enum status "DRAFT, PUBLISHED, SCHEDULED, ARCHIVED"
+        boolean is_featured "Post destacado"
+        boolean allow_comments "Permitir comentarios"
+        integer views_count "Contador de visualizaciones"
+        integer reading_time "Tiempo lectura estimado"
+        uuid category_id FK "Categoría del post"
+        uuid author_id FK "Autor del post"
+        timestamp published_at "Fecha de publicación"
+        timestamp scheduled_at "Fecha programada"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    BLOG_POST_TAGS {
+        uuid id PK "UUID único de la relación"
+        uuid post_id FK "Referencia al post"
+        uuid tag_id FK "Referencia al tag"
+        timestamp created_at "Fecha de creación"
+    }
+
+    BLOG_COMMENTS {
+        uuid id PK "UUID único del comentario"
+        uuid post_id FK "Post relacionado"
+        uuid parent_id FK "Comentario padre (respuesta)"
+        varchar author_name "Nombre del autor"
+        varchar author_email "Email del autor"
+        varchar author_website "Website del autor"
+        text content "Contenido del comentario"
+        varchar ip_address "IP del autor"
+        varchar user_agent "Navegador del autor"
+        enum status "PENDING, APPROVED, REJECTED, SPAM"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades de Servicios
+    SERVICES {
+        uuid id PK "UUID único del servicio"
+        varchar title "Título del servicio"
+        varchar slug UK "URL amigable única"
+        text description "Descripción del servicio"
+        text features "Características JSON"
+        varchar icon "Icono del servicio"
+        varchar image "Imagen del servicio"
+        decimal price "Precio del servicio"
+        varchar price_currency "Moneda del precio"
+        varchar price_period "Período del precio"
+        boolean is_featured "Servicio destacado"
+        boolean is_active "Estado activo"
+        integer sort_order "Orden de visualización"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades del Equipo
+    TEAM_MEMBERS {
+        uuid id PK "UUID único del miembro"
+        varchar full_name "Nombre completo"
+        varchar position "Cargo o posición"
+        text bio "Biografía del miembro"
+        varchar photo "URL foto del miembro"
+        varchar email "Email de contacto"
+        varchar phone "Teléfono de contacto"
+        text social_links "Enlaces sociales JSON"
+        boolean is_active "Estado activo"
+        integer sort_order "Orden de visualización"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades de Testimonios
+    TESTIMONIALS {
+        uuid id PK "UUID único del testimonio"
+        varchar client_name "Nombre del cliente"
+        varchar client_position "Cargo del cliente"
+        varchar client_company "Empresa del cliente"
+        varchar client_photo "Foto del cliente"
+        text content "Contenido del testimonio"
+        integer rating "Calificación 1-5"
+        boolean is_featured "Testimonio destacado"
+        boolean is_active "Estado activo"
+        integer sort_order "Orden de visualización"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades de Contacto
+    CONTACT_FORMS {
+        uuid id PK "UUID único del contacto"
+        varchar name "Nombre del contactante"
+        varchar email "Email del contactante"
+        varchar phone "Teléfono del contactante"
+        varchar company "Empresa del contactante"
+        varchar subject "Asunto del mensaje"
+        text message "Mensaje completo"
+        varchar ip_address "IP del contactante"
+        varchar user_agent "Navegador del contactante"
+        enum status "NEW, READ, REPLIED, ARCHIVED"
+        timestamp replied_at "Fecha de respuesta"
+        uuid replied_by FK "Usuario que respondió"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    %% Entidades de Configuración
+    SITE_SETTINGS {
+        uuid id PK "UUID único de la configuración"
+        varchar key UK "Clave única de configuración"
+        varchar value "Valor de la configuración"
+        varchar type "Tipo de dato (string, number, boolean, json)"
+        varchar category "Categoría de configuración"
+        text description "Descripción de la configuración"
+        boolean is_public "Visible en frontend"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    MEDIA_FILES {
+        uuid id PK "UUID único del archivo"
+        varchar original_name "Nombre original del archivo"
+        varchar file_name "Nombre del archivo en servidor"
+        varchar file_path "Ruta completa del archivo"
+        varchar mime_type "Tipo MIME del archivo"
+        integer file_size "Tamaño en bytes"
+        varchar alt_text "Texto alternativo"
+        varchar caption "Descripción del archivo"
+        uuid uploaded_by FK "Usuario que subió el archivo"
+        timestamp created_at "Fecha de creación"
+        timestamp updated_at "Fecha última actualización"
+    }
+
+    ANALYTICS_EVENTS {
+        uuid id PK "UUID único del evento"
+        varchar event_type "Tipo de evento"
+        varchar page_url "URL de la página"
+        varchar referrer "Página de referencia"
+        varchar ip_address "IP del visitante"
+        varchar user_agent "Navegador del visitante"
+        text event_data "Datos adicionales JSON"
+        timestamp created_at "Fecha del evento"
+    }
+
+    %% Relaciones
+    USERS ||--o{ USER_SESSIONS : "tiene"
+    USERS ||--o{ PAGES : "crea/edita"
+    USERS ||--o{ BLOG_POSTS : "escribe"
+    USERS ||--o{ CONTACT_FORMS : "responde"
+    USERS ||--o{ MEDIA_FILES : "sube"
+
+    BLOG_CATEGORIES ||--o{ BLOG_POSTS : "contiene"
+    BLOG_POSTS ||--o{ BLOG_POST_TAGS : "tiene"
+    BLOG_TAGS ||--o{ BLOG_POST_TAGS : "asignado_a"
+    BLOG_POSTS ||--o{ BLOG_COMMENTS : "recibe"
+    BLOG_COMMENTS ||--o{ BLOG_COMMENTS : "responde_a"

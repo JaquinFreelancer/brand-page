@@ -1,0 +1,485 @@
+classDiagram
+    
+    class User {
+        -UUID id
+        -String email
+        -String passwordHash
+        -String firstName
+        -String lastName
+        -String phone
+        -UserRole role
+        -Boolean isActive
+        -DateTime emailVerifiedAt
+        -DateTime createdAt
+        -DateTime updatedAt
+        -DateTime lastLoginAt
+        +validatePassword(password: String) Boolean
+        +hashPassword(password: String) String
+        +isAdmin() Boolean
+        +isEditor() Boolean
+        +canEditContent() Boolean
+        +getFullName() String
+    }
+
+    class UserSession {
+        -UUID id
+        -UUID userId
+        -String tokenHash
+        -String ipAddress
+        -String userAgent
+        -DateTime expiresAt
+        -DateTime createdAt
+        +isValid() Boolean
+        +isExpired() Boolean
+        +refresh() UserSession
+    }
+
+    class Page {
+        -UUID id
+        -String slug
+        -String title
+        -String metaTitle
+        -String metaDescription
+        -String metaKeywords
+        -String content
+        -String featuredImage
+        -PageStatus status
+        -Boolean isHomepage
+        -Integer sortOrder
+        -UUID createdBy
+        -UUID updatedBy
+        -DateTime publishedAt
+        -DateTime createdAt
+        -DateTime updatedAt
+        +isPublished() Boolean
+        +publish() void
+        +generateSlug() String
+        +optimizeSEO() void
+    }
+
+    class BlogPost {
+        -UUID id
+        -String title
+        -String slug
+        -String excerpt
+        -String content
+        -String featuredImage
+        -String metaTitle
+        -String metaDescription
+        -String metaKeywords
+        -PostStatus status
+        -Boolean isFeatured
+        -Boolean allowComments
+        -Integer viewsCount
+        -Integer readingTime
+        -UUID categoryId
+        -UUID authorId
+        -DateTime publishedAt
+        -DateTime scheduledAt
+        -DateTime createdAt
+        -DateTime updatedAt
+        +isPublished() Boolean
+        +isScheduled() Boolean
+        +publish() void
+        +schedule(date: DateTime) void
+        +incrementViews() void
+        +calculateReadingTime() Integer
+        +generateSlug() String
+    }
+
+    class BlogCategory {
+        -UUID id
+        -String name
+        -String slug
+        -String description
+        -String color
+        -Boolean isActive
+        -Integer sortOrder
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getPostsCount() Integer
+        +generateSlug() String
+    }
+
+    class BlogTag {
+        -UUID id
+        -String name
+        -String slug
+        -String color
+        -Integer usageCount
+        -DateTime createdAt
+        -DateTime updatedAt
+        +incrementUsage() void
+        +decrementUsage() void
+        +generateSlug() String
+    }
+
+    class BlogComment {
+        -UUID id
+        -UUID postId
+        -UUID parentId
+        -String authorName
+        -String authorEmail
+        -String authorWebsite
+        -String content
+        -String ipAddress
+        -String userAgent
+        -CommentStatus status
+        -DateTime createdAt
+        -DateTime updatedAt
+        +isApproved() Boolean
+        +approve() void
+        +reject() void
+        +markAsSpam() void
+        +isReply() Boolean
+    }
+
+    class Service {
+        -UUID id
+        -String title
+        -String slug
+        -String description
+        -JSON features
+        -String icon
+        -String image
+        -Decimal price
+        -String priceCurrency
+        -String pricePeriod
+        -Boolean isFeatured
+        -Boolean isActive
+        -Integer sortOrder
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getFormattedPrice() String
+        +generateSlug() String
+    }
+
+    class TeamMember {
+        -UUID id
+        -String fullName
+        -String position
+        -String bio
+        -String photo
+        -String email
+        -String phone
+        -JSON socialLinks
+        -Boolean isActive
+        -Integer sortOrder
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getSocialLink(platform: String) String
+        +addSocialLink(platform: String, url: String) void
+    }
+
+    class Testimonial {
+        -UUID id
+        -String clientName
+        -String clientPosition
+        -String clientCompany
+        -String clientPhoto
+        -String content
+        -Integer rating
+        -Boolean isFeatured
+        -Boolean isActive
+        -Integer sortOrder
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getStars() String
+        +isHighRating() Boolean
+    }
+
+    class ContactForm {
+        -UUID id
+        -String name
+        -String email
+        -String phone
+        -String company
+        -String subject
+        -String message
+        -String ipAddress
+        -String userAgent
+        -ContactStatus status
+        -DateTime repliedAt
+        -UUID repliedBy
+        -DateTime createdAt
+        -DateTime updatedAt
+        +markAsRead() void
+        +markAsReplied(userId: UUID) void
+        +archive() void
+    }
+
+    class SiteSetting {
+        -UUID id
+        -String key
+        -String value
+        -String type
+        -String category
+        -String description
+        -Boolean isPublic
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getValue() Object
+        +setValue(value: Object) void
+        +isPublicSetting() Boolean
+    }
+
+    class MediaFile {
+        -UUID id
+        -String originalName
+        -String fileName
+        -String filePath
+        -String mimeType
+        -Integer fileSize
+        -String altText
+        -String caption
+        -UUID uploadedBy
+        -DateTime createdAt
+        -DateTime updatedAt
+        +getFormattedSize() String
+        +isImage() Boolean
+        +getUrl() String
+    }
+
+    class UserRole {
+        <<enumeration>>
+        ADMIN
+        EDITOR
+        VIEWER
+    }
+
+    class PageStatus {
+        <<enumeration>>
+        DRAFT
+        PUBLISHED
+        ARCHIVED
+    }
+
+    class PostStatus {
+        <<enumeration>>
+        DRAFT
+        PUBLISHED
+        SCHEDULED
+        ARCHIVED
+    }
+
+    class CommentStatus {
+        <<enumeration>>
+        PENDING
+        APPROVED
+        REJECTED
+        SPAM
+    }
+
+    class ContactStatus {
+        <<enumeration>>
+        NEW
+        READ
+        REPLIED
+        ARCHIVED
+    }
+
+    class AuthService {
+        -UserRepository userRepo
+        -SessionRepository sessionRepo
+        -EmailService emailService
+        +login(email: String, password: String) AuthResult
+        +logout(token: String) void
+        +register(userData: UserData) User
+        +resetPassword(email: String) void
+        +verifyEmail(token: String) Boolean
+        +refreshToken(token: String) AuthResult
+        +validateToken(token: String) User
+    }
+
+    class ContentService {
+        -PageRepository pageRepo
+        -MediaRepository mediaRepo
+        +createPage(pageData: PageData) Page
+        +updatePage(id: UUID, pageData: PageData) Page
+        +deletePage(id: UUID) void
+        +getPublishedPages() List~Page~
+        +getPageBySlug(slug: String) Page
+        +uploadMedia(file: File, userId: UUID) MediaFile
+    }
+
+    class BlogService {
+        -PostRepository postRepo
+        -CategoryRepository categoryRepo
+        -TagRepository tagRepo
+        -CommentRepository commentRepo
+        +createPost(postData: PostData) BlogPost
+        +updatePost(id: UUID, postData: PostData) BlogPost
+        +deletePost(id: UUID) void
+        +publishPost(id: UUID) BlogPost
+        +schedulePost(id: UUID, date: DateTime) BlogPost
+        +getPublishedPosts() List~BlogPost~
+        +getPostsByCategory(categoryId: UUID) List~BlogPost~
+        +getPostsByTag(tagId: UUID) List~BlogPost~
+        +addComment(postId: UUID, commentData: CommentData) BlogComment
+        +moderateComment(commentId: UUID, status: CommentStatus) BlogComment
+    }
+
+    class ContactService {
+        -ContactRepository contactRepo
+        -EmailService emailService
+        +submitContact(contactData: ContactData) ContactForm
+        +getContacts(status: ContactStatus) List~ContactForm~
+        +replyToContact(contactId: UUID, userId: UUID) void
+        +sendAutoReply(contactForm: ContactForm) void
+    }
+
+    class SEOService {
+        +generateMetaTags(content: Object) MetaTags
+        +optimizeContent(content: String) String
+        +generateSitemap() String
+        +generateRobotsTxt() String
+        +analyzeKeywords(content: String) List~String~
+    }
+
+    class EmailService {
+        -SmtpConfig config
+        +sendWelcomeEmail(user: User) void
+        +sendPasswordReset(email: String, token: String) void
+        +sendContactNotification(contact: ContactForm) void
+        +sendContactReply(contact: ContactForm, message: String) void
+    }
+
+    class CacheService {
+        +get(key: String) Object
+        +set(key: String, value: Object, ttl: Integer) void
+        +delete(key: String) void
+        +flush() void
+        +remember(key: String, callback: Function, ttl: Integer) Object
+    }
+
+    class AnalyticsService {
+        -AnalyticsRepository analyticsRepo
+        +trackPageView(url: String, userAgent: String, ip: String) void
+        +trackEvent(eventType: String, data: Object) void
+        +getPageViews(dateRange: DateRange) Statistics
+        +getPopularContent() List~ContentStats~
+        +getUserMetrics() UserMetrics
+    }
+
+    class UserRepository {
+        <<interface>>
+        +findById(id: UUID) User
+        +findByEmail(email: String) User
+        +save(user: User) User
+        +delete(id: UUID) void
+        +findActive() List~User~
+    }
+
+    class PageRepository {
+        <<interface>>
+        +findById(id: UUID) Page
+        +findBySlug(slug: String) Page
+        +save(page: Page) Page
+        +delete(id: UUID) void
+        +findPublished() List~Page~
+        +findHomepage() Page
+    }
+
+    class BlogPostRepository {
+        <<interface>>
+        +findById(id: UUID) BlogPost
+        +findBySlug(slug: String) BlogPost
+        +save(post: BlogPost) BlogPost
+        +delete(id: UUID) void
+        +findPublished() List~BlogPost~
+        +findByCategory(categoryId: UUID) List~BlogPost~
+        +findFeatured() List~BlogPost~
+        +findScheduled() List~BlogPost~
+    }
+
+    class ContactRepository {
+        <<interface>>
+        +findById(id: UUID) ContactForm
+        +save(contact: ContactForm) ContactForm
+        +delete(id: UUID) void
+        +findByStatus(status: ContactStatus) List~ContactForm~
+        +findRecent(limit: Integer) List~ContactForm~
+    }
+
+    class AuthController {
+        -AuthService authService
+        +login(request: LoginRequest) AuthResponse
+        +logout(request: LogoutRequest) void
+        +register(request: RegisterRequest) UserResponse
+        +resetPassword(request: ResetPasswordRequest) void
+        +verifyEmail(token: String) void
+        +refreshToken(request: RefreshTokenRequest) AuthResponse
+    }
+
+    class PageController {
+        -ContentService contentService
+        +getHomepage() PageResponse
+        +getPage(slug: String) PageResponse
+        +createPage(request: CreatePageRequest) PageResponse
+        +updatePage(id: UUID, request: UpdatePageRequest) PageResponse
+        +deletePage(id: UUID) void
+        +getPages() List~PageResponse~
+    }
+
+    class BlogController {
+        -BlogService blogService
+        +getPosts() List~PostResponse~
+        +getPost(slug: String) PostResponse
+        +getPostsByCategory(categorySlug: String) List~PostResponse~
+        +createPost(request: CreatePostRequest) PostResponse
+        +updatePost(id: UUID, request: UpdatePostRequest) PostResponse
+        +deletePost(id: UUID) void
+        +addComment(postId: UUID, request: CommentRequest) CommentResponse
+    }
+
+    class ContactController {
+        -ContactService contactService
+        +submitContact(request: ContactRequest) ContactResponse
+        +getContacts() List~ContactResponse~
+        +replyToContact(id: UUID, request: ReplyRequest) void
+    }
+
+    class AdminController {
+        -ContentService contentService
+        -BlogService blogService
+        -ContactService contactService
+        +getDashboard() DashboardResponse
+        +getAnalytics() AnalyticsResponse
+        +manageUsers() List~UserResponse~
+        +manageContent() ContentManagementResponse
+    }
+
+    User ||--o{ UserSession : tiene
+    User ||--o{ BlogPost : escribe
+    User ||--o{ Page : crea
+    User ||--o{ MediaFile : sube
+    User |o--|| UserRole : posee
+    
+    BlogPost }o--|| BlogCategory : pertenece
+    BlogPost ||--o{ BlogComment : recibe
+    BlogPost }o--o{ BlogTag : etiquetado
+    BlogComment }o--o| BlogComment : responde
+    
+    Page |o--|| PageStatus : estado
+    BlogPost |o--|| PostStatus : estado
+    BlogComment |o--|| CommentStatus : estado
+    ContactForm |o--|| ContactStatus : estado
+    
+    AuthService --> UserRepository : usa
+    AuthService --> EmailService : usa
+    ContentService --> PageRepository : usa
+    BlogService --> BlogPostRepository : usa
+    ContactService --> ContactRepository : usa
+    ContactService --> EmailService : usa
+    
+    AuthController --> AuthService : utiliza
+    PageController --> ContentService : utiliza
+    BlogController --> BlogService : utiliza
+    ContactController --> ContactService : utiliza
+    AdminController --> ContentService : utiliza
+    AdminController --> BlogService : utiliza
+    AdminController --> AnalyticsService : utiliza
+    
+    BlogService --> CacheService : cachea
+    ContentService --> SEOService : optimiza
+    AnalyticsService --> CacheService : cachea

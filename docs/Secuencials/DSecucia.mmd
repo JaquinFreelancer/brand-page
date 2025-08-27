@@ -1,0 +1,181 @@
+sequenceDiagram
+    %% Comentarios:
+    %% - Diagramas de secuencia principales del sistema web institucional
+    %% - Incluye flujos críticos: autenticación, gestión de contenido, contacto, blog
+    %% - Muestra interacciones entre Frontend, Backend, Base de Datos y servicios externos
+    %% - Considera validaciones, seguridad y notificaciones
+
+    participant V as Visitante
+    participant F as Frontend
+    participant A as API Backend
+    participant S as Security Layer
+    participant DB as Database
+    participant E as Email Service
+    participant C as Captcha Service
+
+    %% === DIAGRAMA 1: AUTENTICACIÓN DE USUARIO ===
+    Note over V,C: 🔐 Flujo de Autenticación de Usuario
+
+    V->>F: 1. Accede a /login
+    F->>V: 2. Muestra formulario de login
+    V->>F: 3. Envía credenciales (email, password)
+    F->>A: 4. POST /api/auth/login
+    A->>S: 5. Valida datos de entrada
+    S->>DB: 6. Consulta usuario por email
+    DB->>S: 7. Retorna datos del usuario
+    S->>S: 8. Verifica password hash (bcrypt)
+    
+    alt Credenciales válidas
+        S->>A: 9. Genera JWT token
+        A->>DB: 10. Crea sesión en USER_SESSIONS
+        DB->>A: 11. Confirma creación de sesión
+        A->>F: 12. Retorna token JWT + datos usuario
+        F->>F: 13. Almacena token en localStorage
+        F->>V: 14. Redirige a dashboard/perfil
+    else Credenciales inválidas
+        S->>A: 9. Error de autenticación
+        A->>F: 10. Retorna error 401
+        F->>V: 11. Muestra mensaje de error
+    end
+
+    %% === DIAGRAMA 2: ENVÍO DE FORMULARIO DE CONTACTO ===
+    Note over V,C: 📧 Flujo de Formulario de Contacto
+
+    V->>F: 1. Accede a /contacto
+    F->>V: 2. Muestra formulario
+    V->>C: 3. Resuelve CAPTCHA
+    C->>V: 4. Token de verificación
+    V->>F: 5. Completa y envía formulario
+    F->>A: 6. POST /api/contact (con token CAPTCHA)
+    A->>C: 7. Verifica token CAPTCHA
+    C->>A: 8. Confirma validez
+    A->>S: 9. Valida y sanitiza datos
+    
+    alt Datos válidos
+        S->>DB: 10. Inserta en CONTACT_FORMS
+        DB->>S: 11. Confirma inserción
+        S->>E: 12. Envía notificación por email
+        E->>S: 13. Confirma envío
+        S->>A: 14. Éxito
+        A->>F: 15. Respuesta 200 OK
+        F->>V: 16. Mensaje de confirmación
+    else Datos inválidos o CAPTCHA falla
+        S->>A: 10. Error de validación
+        A->>F: 11. Retorna error 400
+        F->>V: 12. Muestra errores específicos
+    end
+
+    %% === DIAGRAMA 3: CREACIÓN DE POST DE BLOG ===
+    Note over V,C: 📝 Flujo de Creación de Post de Blog (Admin/Editor)
+
+    participant U as Usuario Admin/Editor
+
+    U->>F: 1. Accede a /admin/blog/nuevo
+    F->>A: 2. GET /api/auth/me (verificar sesión)
+    A->>S: 3. Valida JWT token
+    S->>DB: 4. Consulta datos de usuario
+    DB->>S: 5. Retorna usuario y rol
+    
+    alt Usuario autorizado (ADMIN/EDITOR)
+        S->>A: 6. Usuario válido
+        A->>F: 7. Retorna datos usuario
+        F->>A: 8. GET /api/blog/categories (cargar categorías)
+        A->>DB: 9. Consulta BLOG_CATEGORIES
+        DB->>A: 10. Retorna categorías activas
+        A->>F: 11. Lista de categorías
+        F->>U: 12. Muestra formulario de creación
+        
+        U->>F: 13. Completa y envía post
+        F->>A: 14. POST /api/blog
+        A->>S: 15. Valida datos y permisos
+        S->>DB: 16. Inserta en BLOG_POSTS
+        DB->>S: 17. Retorna ID del post creado
+        S->>DB: 18. Inserta tags en BLOG_POST_TAGS
+        DB->>S: 19. Confirma inserción de tags
+        S->>A: 20. Post creado exitosamente
+        A->>F: 21. Respuesta 201 Created
+        F->>U: 22. Mensaje de éxito + redirección
+    else Usuario no autorizado
+        S->>A: 6. Error de autorización
+        A->>F: 7. Retorna error 403
+        F->>U: 8. Redirige a /login
+    end
+
+    %% === DIAGRAMA 4: COMENTARIO EN BLOG POST ===
+    Note over V,C: 💬 Flujo de Comentario en Blog Post
+
+    V->>F: 1. Accede a /blog/post-slug
+    F->>A: 2. GET /api/blog/post-slug
+    A->>DB: 3. Consulta BLOG_POSTS + comentarios aprobados
+    DB->>A: 4. Retorna post y comentarios
+    A->>F: 5. Datos del post
+    F->>V: 6. Muestra post y formulario de comentarios
+    
+    V->>C: 7. Resuelve CAPTCHA
+    C->>V: 8. Token de verificación
+    V->>F: 9. Envía comentario
+    F->>A: 10. POST /api/blog/post-slug/comments
+    A->>C: 11. Verifica CAPTCHA
+    C->>A: 12. Token válido
+    A->>S: 13. Valida y sanitiza contenido
+    
+    alt Comentario válido
+        S->>DB: 14. Inserta en BLOG_COMMENTS (status: PENDING)
+        DB->>S: 15. Confirma inserción
+        S->>E: 16. Notifica a moderadores
+        E->>S: 17. Email enviado
+        S->>A: 18. Comentario enviado
+        A->>F: 19. Respuesta 201 Created
+        F->>V: 20. Mensaje "Comentario pendiente de moderación"
+    else Comentario inválido
+        S->>A: 14. Error de validación
+        A->>F: 15. Retorna error 400
+        F->>V: 16. Muestra errores
+    end
+
+    %% === DIAGRAMA 5: RECUPERACIÓN DE CONTRASEÑA ===
+    Note over V,C: 🔑 Flujo de Recuperación de Contraseña
+
+    V->>F: 1. Accede a /recuperar-password
+    F->>V: 2. Muestra formulario
+    V->>F: 3. Envía email
+    F->>A: 4. POST /api/auth/password-reset
+    A->>S: 5. Valida formato de email
+    S->>DB: 6. Busca usuario por email
+    
+    alt Usuario existe
+        DB->>S: 7. Usuario encontrado
+        S->>S: 8. Genera token único
+        S->>DB: 9. Inserta en PASSWORD_RESETS
+        DB->>S: 10. Token guardado
+        S->>E: 11. Envía email con enlace de reset
+        E->>S: 12. Email enviado
+        S->>A: 13. Reset iniciado
+        A->>F: 14. Respuesta 200 OK
+        F->>V: 15. "Revisa tu email"
+        
+        Note over V,E: Usuario recibe email y hace click en enlace
+        
+        V->>F: 16. Accede a /restablecer-password/token
+        F->>A: 17. GET /api/auth/password-reset/verify-token
+        A->>DB: 18. Valida token en PASSWORD_RESETS
+        DB->>A: 19. Token válido y no expirado
+        A->>F: 20. Token válido
+        F->>V: 21. Muestra formulario nueva contraseña
+        
+        V->>F: 22. Envía nueva contraseña
+        F->>A: 23. POST /api/auth/password-reset/confirm
+        A->>S: 24. Valida contraseña y token
+        S->>DB: 25. Actualiza password_hash en USERS
+        DB->>S: 26. Contraseña actualizada
+        S->>DB: 27. Elimina token usado
+        DB->>S: 28. Token eliminado
+        S->>A: 29. Reset completado
+        A->>F: 30. Respuesta 200 OK
+        F->>V: 31. "Contraseña actualizada" + redirige a login
+    else Usuario no existe
+        DB->>S: 7. Usuario no encontrado
+        S->>A: 8. Simula respuesta exitosa (seguridad)
+        A->>F: 9. Respuesta 200 OK
+        F->>V: 10. "Revisa tu email" (sin revelar si existe)
+    end
